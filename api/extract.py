@@ -1,5 +1,4 @@
 import json
-import pdfplumber
 import fitz
 from http.server import BaseHTTPRequestHandler
 
@@ -7,20 +6,10 @@ def extract_logic():
     try:
         pdf_file = "sample.pdf"
         extracted_text = ""
-
-        with pdfplumber.open(pdf_file) as pdf:
-            for p in pdf.pages:
-                t = p.extract_text()
-                if t:
-                    extracted_text += t + "\n"
-
-        if not extracted_text.strip():
-            doc = fitz.open(pdf_file)
-            for page in doc:
-                extracted_text += page.get_text() + "\n"
-                for img in page.get_images(full=True):
-                    xref = img[0]
-                    base_image = doc.extract_image(xref)
+        
+        doc = fitz.open(pdf_file)
+        for page in doc:
+            extracted_text += page.get_text() + "\n"
 
         caps = []
         low_text = extracted_text.lower()
@@ -51,7 +40,7 @@ def extract_logic():
         response_data = {
             "supplier_profile": {
                 "status": "success",
-                "extraction_source": "hybrid_parser",
+                "extraction_source": "pymupdf_parser",
                 "supplier_name": "Extracted Supplier Profile",
                 "capabilities": caps,
                 "certifications": certs,
