@@ -1,15 +1,25 @@
 import json
-import fitz
+import pdfplumber
+from pdf2image import convert_from_path
+import pytesseract
 from http.server import BaseHTTPRequestHandler
 
 def extract_logic():
     try:
         pdf_file = "sample.pdf"
         extracted_text = ""
-        
-        doc = fitz.open(pdf_file)
-        for page in doc:
-            extracted_text += page.get_text() + "\n"
+
+        with pdfplumber.open(pdf_file) as pdf:
+            for p in pdf.pages:
+                t = p.extract_text()
+                if t:
+                    extracted_text += t + "\n"
+
+        if not extracted_text.strip():
+            pages = convert_from_path(pdf_file)
+            for img in pages:
+                ocr_res = pytesseract.image_to_string(img)
+                extracted_text += ocr_res + "\n"
 
         caps = []
         low_text = extracted_text.lower()
@@ -40,7 +50,7 @@ def extract_logic():
         response_data = {
             "supplier_profile": {
                 "status": "success",
-                "extraction_source": "pymupdf_parser",
+                "extraction_source": "auto_ocr_parser",
                 "supplier_name": "Extracted Supplier Profile",
                 "capabilities": caps,
                 "certifications": certs,
