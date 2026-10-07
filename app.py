@@ -1,13 +1,24 @@
 import os
 import json
+import pdfplumber
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
+            pdf_file = "sample.pdf"
+            text_preview = "No PDF found"
+            if os.path.exists(pdf_file):
+                with pdfplumber.open(pdf_file) as pdf:
+                    for p in pdf.pages:
+                        t = p.extract_text()
+                        if t:
+                            text_preview = t[:150]
+                            break
+
             response_data = {
                 "status": "success",
-                "message": "Render Server is running successfully!"
+                "pdf_check": text_preview
             }
             output = json.dumps(response_data, indent=4).encode('utf-8')
             self.send_response(200)
@@ -30,5 +41,4 @@ class SimpleHandler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     server = HTTPServer(('0.0.0.0', port), SimpleHandler)
-    print(f"Server started on port {port}")
     server.serve_forever()
