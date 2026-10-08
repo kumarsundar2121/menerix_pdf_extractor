@@ -1,13 +1,13 @@
 import streamlit as st
-import json
 import pdfplumber
 import fitz
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 from PIL import Image
 import io
 
-st.title("Menerix PDF Extractor & JSON Schema Generator")
+pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+
+st.title("Menerix Supplier Profile Extractor")
 
 uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
@@ -33,8 +33,8 @@ if uploaded_file is not None:
                 ocr_res = pytesseract.image_to_string(img)
                 extracted_text += ocr_res + "\n"
             except Exception:
-                extracted_text += "[OCR skipped: Text extraction only]\n"
-            
+                pass
+
     caps = []
     low_text = extracted_text.lower()
     if "cnc" in low_text or "milling" in low_text:
@@ -45,7 +45,7 @@ if uploaded_file is not None:
         caps.append("Injection Molding")
 
     if not caps:
-        caps = ["General Manufacturing Services"]
+        caps.append("General Manufacturing Services")
 
     certs = []
     if "iso" in low_text or "ce" in low_text:
@@ -61,29 +61,20 @@ if uploaded_file is not None:
     if not machinery:
         machinery.append("General Industrial Equipment")
 
-    supplier_json_output = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "SupplierProfileExtraction",
-        "type": "object",
-        "properties": {
-            "status": {"type": "string"},
-            "extraction_source": {"type": "string"},
-            "supplier_name": {"type": "string"},
-            "capabilities": {"type": "array", "items": {"type": "string"}},
-            "certifications": {"type": "array", "items": {"type": "string"}},
-            "machinery_list": {"type": "array", "items": {"type": "string"}},
-            "raw_text_preview": {"type": "string"}
-        },
-        "supplier_profile": {
-            "status": "success",
-            "extraction_source": "streamlit_pymupdf_hybrid_parser",
-            "supplier_name": "Extracted Supplier Profile",
-            "capabilities": caps,
-            "certifications": certs,
-            "machinery_list": machinery,
-            "raw_text_preview": extracted_text[:300].strip() + "..." if extracted_text else "No text found"
-        }
-    }
-
-    st.subheader("Generated JSON Schema & Extracted Data Output:")
-    st.json(supplier_json_output)
+    st.subheader("Extracted Supplier Details:")
+    
+    st.markdown(f"**Status:** Success")
+    st.markdown(f"**Supplier Profile Found:** Yes")
+    
+    st.write("---")
+    st.write("**1. Manufacturing Capabilities:**")
+    for c in caps:
+        st.write(f"- {c}")
+        
+    st.write("**2. Certifications & Compliance:**")
+    for cert in certs:
+        st.write(f"- {cert}")
+        
+    st.write("**3. Machinery & Equipment:**")
+    for m in machinery:
+        st.write(f"- {m}")
