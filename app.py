@@ -3,6 +3,7 @@ import json
 import pdfplumber
 import fitz
 import pytesseract
+pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 from PIL import Image
 import io
 
