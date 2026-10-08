@@ -29,8 +29,11 @@ if uploaded_file is not None:
             pix = page.get_pixmap(dpi=150)
             img_data = pix.tobytes("png")
             img = Image.open(io.BytesIO(img_data))
-            ocr_res = pytesseract.image_to_string(img)
-            extracted_text += ocr_res + "\n"
+            try:
+                ocr_res = pytesseract.image_to_string(img)
+                extracted_text += ocr_res + "\n"
+            except Exception:
+                extracted_text += "[OCR skipped: Text extraction only]\n"
             
     caps = []
     low_text = extracted_text.lower()
