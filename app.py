@@ -1,8 +1,10 @@
 import streamlit as st
 import json
 import pdfplumber
-from pdf2image import convert_from_path
+import fitz
 import pytesseract
+from PIL import Image
+import io
 
 st.title("Menerix PDF Extractor & JSON Schema Generator")
 
@@ -21,8 +23,11 @@ if uploaded_file is not None:
                 extracted_text += t + "\n"
                 
     if not extracted_text.strip():
-        pages = convert_from_path("temp.pdf")
-        for img in pages:
+        doc = fitz.open("temp.pdf")
+        for page in doc:
+            pix = page.get_pixmap(dpi=150)
+            img_data = pix.tobytes("png")
+            img = Image.open(io.BytesIO(img_data))
             ocr_res = pytesseract.image_to_string(img)
             extracted_text += ocr_res + "\n"
             
@@ -67,7 +72,7 @@ if uploaded_file is not None:
         },
         "supplier_profile": {
             "status": "success",
-            "extraction_source": "streamlit_ocr_hybrid_parser",
+            "extraction_source": "streamlit_pymupdf_hybrid_parser",
             "supplier_name": "Extracted Supplier Profile",
             "capabilities": caps,
             "certifications": certs,
